@@ -1,0 +1,16 @@
+{
+  "name": "adsmurai-capi",
+  "version": "1.0.0",
+  "description": "Herramienta para subir conversiones offline a Meta Conversions API",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "csv-parser": "^3.0.0",
+    "dotenv": "^16.0.0"
+  },
+  "author": "",
+  "license": "ISC"
+}
