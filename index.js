@@ -23,11 +23,11 @@ async function run() {
             throw new Error('La URL no devolvió un CSV válido.');
         }
 
-        console.log('2. Procesando datos y construyendo auditoría...');
+        console.log('2. Procesando datos y construyendo audit_log...');
         const { eventsToSend, auditTrail } = await processData(csvContent, headers);
 
         fs.writeFileSync('audit_log.json', JSON.stringify(auditTrail, null, 2));
-        console.log(`✅ Archivo "audit_log.json" generado con ${auditTrail.length} registros detallados.`);
+        console.log(`Archivo "audit_log.json" generado con ${auditTrail.length} registros detallados.`);
 
         if (eventsToSend.length > 0) {
             console.log(`3. Enviando lote de ${eventsToSend.length} eventos a Meta...`);
@@ -35,7 +35,7 @@ async function run() {
         }
 
     } catch (error) {
-        console.error('❌ Error crítico:', error.message);
+        console.error('Error crítico:', error.message);
     }
 }
 
@@ -130,11 +130,13 @@ async function uploadToMeta(events) {
         const res = await axios.post(url, { data: events }, {
             params: { access_token: ACCESS_TOKEN }
         });
-        console.log('🚀 ÉXITO: Meta recibió los eventos correctamente.');
+
+        console.log('ÉXITO: Meta respondió con status', res.status);
+        console.log('Eventos aceptados por Meta:', res.data.events_received); 
         console.log('FB Trace ID:', res.data.fbtrace_id);
+        
     } catch (error) {
-        const msg = error.response?.data?.error?.message || error.message;
-        console.error('❌ Error API Meta:', msg);
+        console.error('Error API Meta:', error.response?.data?.error?.message || error.message);
     }
 }
 
