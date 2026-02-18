@@ -1,22 +1,23 @@
 # Adsmurai - Conversions API (CAPI) Offline Tool
 
-Esta herramienta ha sido diseñada para automatizar la ingesta, normalización y envío de eventos de conversión offline. Su función principal es conectar fuentes de datos estáticas (como exportaciones CSV en Google Drive) con la **API de Conversiones de Meta**, asegurando que cada venta física se atribuya correctamente a las campañas digitales.
+Esta herramienta la he diseñado para automatizar la inserción, normalización y envío de eventos de conversión offline. Su función principal es conectar fuentes de datos estáticas (en este caso CSV Vía Google Drive) con la **API de Conversiones de Meta**, asegurando que cada venta física se atribuya correctamente a las campañas digitales.
 
 ## 🚀 Funcionalidades Principales
 
-* **Ingesta Dinámica:** Lectura de archivos CSV directamente desde una URL remota, procesando los datos en *stream* para optimizar memoria.
-* **Normalización de Datos (PII):** Limpieza estricta de emails, nombres y teléfonos siguiendo los estándares de calidad de Meta (EMQ).
-* **Hashing SHA-256:** Cifrado unidireccional de todos los datos sensibles antes de salir del entorno local ("Privacy by Design").
-* **Sistema de Auditoría (Audit Log):** Generación automática de un archivo `audit_log.json` que ofrece trazabilidad total: `Dato Original -> Transformado -> Hasheado -> Payload Final`.
+* **Inserción Dinámica:** Lectura de archivos CSV directamente desde una URL remota (Google Drive), procesando los datos en *stream* para optimizar memoria.
+* **Normalización de Datos:** Limpieza estricta de emails, nombres y teléfonos siguiendo los estándares de calidad de Meta (EMQ).
+* **Hashing SHA-256:** Cifrado unidireccional de todos los datos sensibles antes de salir del entorno local ("Privacy by Design") hacia plataforma.
+* **Sistema de Auditoría (Audit Log):** Generación automática del archivo `audit_log.json` que ofrece la visualización de la trazabilidad total: 
+`Dato Original -> Transformado -> Payload Final (datos hasheados)`.
 * **Atribución Offline:** Configuración estratégica del parámetro `action_source` como `physical_store` para optimizar la medición en puntos de venta físicos.
 
 ---
 
 ## 🛠️ Decisiones Técnicas y Justificación
 
-### 1. Manejo de Identificadores Duplicados
-Al analizar el CSV de origen, detecté múltiples columnas con variaciones de email. Para no perder datos, implementé un mapeo manual de `headers` en la lectura del CSV.
-> **¿Por qué?** Esto maximiza el **Event Match Quality (EMQ)** al asegurar que procesamos la columna correcta sin importar el nombre que tenga en el archivo crudo.
+### 1. Estrategia Multi-Key Matching (Maximización del EMQ)
+El archivo de origen contiene múltiples columnas de correo electrónico (`email`) dispersas. En lugar de seleccionar arbitrariamente una sola, el algoritmo captura y procesa todas las variantes disponibles para un mismo usuario.
+> **¿Por qué?** La API de Conversiones de Meta acepta arrays de identificadores. Al enviar múltiples hashes de email para un solo evento (ej: personal, trabajo, antiguo), se aumenta la posibilidad de match, disparando la puntuación de **Event Match Quality (EMQ)**.
 
 ### 2. Normalización antes del Hashing
 Meta es muy estricto con el formato de los datos antes de recibir el hash. El script aplica las siguientes reglas de negocio:
@@ -26,11 +27,11 @@ Meta es muy estricto con el formato de los datos antes de recibir el hash. El sc
 
 ### 3. Timestamp Unix
 La API requiere el tiempo en segundos (Unix Timestamp), no en milisegundos ni formato ISO.
-> **Solución:** He implementado una conversión automática de la fecha para asegurar que el evento se registre en el momento exacto de la transacción y no en el momento de la ejecución del script.
+> **Solución:** He implementado una conversión automática de la fecha facilitada en el CSV para asegurar que el evento se registre en el momento exacto de la transacción y no en el momento de la ejecución del script.
 
 ### 4. Audit Log para Debugging
-Dado que las integraciones "Server-to-Server" no dan mucha visualización y no tengo acceso al panel de Meta, he añadido la generación del archivo `audit_log.json`.
-> **Valor añadido:** Me permite verificar los datos enviados a Meta sin mirar peticiones y asi poder detectar errores en los datos.
+Dado que las integraciones "Server-to-Server" no dan mucha visualización y no tengo acceso al panel de Meta, he añadido la generación del archivo `audit_log.json`. 
+Me permite verificar los datos enviados a Meta sin mirar peticiones y asi poder detectar errores en los datos.
 
 ---
 
