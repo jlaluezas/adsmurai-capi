@@ -73,6 +73,7 @@ function formatAndAudit(row, index) {
         });
 
         // --- 2. TRANSFORMACIÓN DEL RESTO DE DATOS ---
+
         // Teléfono
         const cleanPhone = (row.phone || '').replace(/\D/g, '');
         
@@ -85,13 +86,15 @@ function formatAndAudit(row, index) {
         const cleanZip = (row.zip || '').trim().toLowerCase(); 
         const cleanCountry = (row.country || '').trim().toLowerCase(); 
         const cleanGender = (row.gender || '').toLowerCase().startsWith('f') ? 'f' : 'm';
-        const cleanMadid = (row.madid || '').trim();
+
+        //Identificador anunciantes
+        const rawMadid = (row.madid || '').trim();
 
         // Datos Económicos
         const cleanValue = parseFloat(row.price?.replace(/[^\d,.]/g, '').replace(',', '.') || 0);
         const cleanCurrency = row.price?.includes('€') ? 'EUR' : 'USD';
 
-        // Fecha (Lógica robusta)
+        // Fecha 
         let parsedDate = new Date((row.time || '').trim().replace(/['"]/g, ''));
         if (isNaN(parsedDate.getTime())) parsedDate = new Date(); 
         const eventTime = Math.floor(parsedDate.getTime() / 1000);
@@ -104,7 +107,6 @@ function formatAndAudit(row, index) {
         const hashedZip = hashData(cleanZip);
         const hashedCountry = hashData(cleanCountry);
         const hashedGender = hashData(cleanGender);
-        const hashedMadid = hashData(cleanMadid);
 
         // --- 4. CONSTRUCCIÓN DEL EVENTO ---
         const event = {
@@ -116,10 +118,10 @@ function formatAndAudit(row, index) {
                 ph: [hashedPhone],
                 fn: [hashedFirstName],
                 ln: [hashedLastName],
+                ge: [hashedGender],
                 zp: [hashedZip],
                 country: [hashedCountry],
-                gen: [hashedGender],
-                madid: [hashedMadid]
+                madid: rawMadid
             },
             custom_data: {
                 value: cleanValue,
@@ -146,7 +148,7 @@ function formatAndAudit(row, index) {
                 nombre: firstName,
                 apellido: lastName,
                 telefono: cleanPhone,
-                madid: cleanMadid,
+                madid: rawMadid,
                 zip: cleanZip,
                 pais: cleanCountry,
                 genero: cleanGender,
@@ -156,12 +158,14 @@ function formatAndAudit(row, index) {
             },
             peticion_meta: event
         };
-
         return { audit, event };
-    } catch (e) {
+
+  } catch (e) {
+        console.error('ERROR DETECTADO:', e.message);
         return null;
     }
 }
+
 
 async function uploadToMeta(events) {
     const url = `https://graph.facebook.com/v19.0/${PIXEL_ID}/events`;
