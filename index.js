@@ -8,6 +8,7 @@ const { hashData } = require('./tools/hashing');
 const PIXEL_ID = process.env.META_PIXEL_ID;
 const ACCESS_TOKEN = process.env.META_ACCESS_TOKEN;
 const CSV_URL = process.env.CSV_URL;
+const META_API_VERSION = process.env.META_API_VERSION;
 
 async function run() {
     console.log('--- Iniciando Proceso CAPI: Multi-Email Matching ---');
@@ -63,7 +64,6 @@ function processData(content, headers) {
         bufferStream
             .pipe(csv({ headers, skipLines: 1 }))
             .on('data', (row) => {
-                // Filtramos que al menos exista un email válido en alguna de las 3 columnas
                 if ((row.em0 && row.em0.includes('@')) || (row.em1 && row.em1.includes('@')) || (row.em2 && row.em2.includes('@'))) {
                     const result = formatAndAudit(row, counter);
                     if (result) {
@@ -171,7 +171,6 @@ function formatAndAudit(row, index) {
                 moneda: cleanCurrency,
                 timestamp: eventTime
             },
-            // Se elimina la propiedad 'peticion_meta' de aquí porque el payload final ahora va agrupado al final del JSON
         };
         return { audit, event };
 
@@ -182,7 +181,7 @@ function formatAndAudit(row, index) {
 }
 
 async function uploadToMeta(events) {
-    const url = `https://graph.facebook.com/v19.0/${PIXEL_ID}/events`;
+    const url = `https://graph.facebook.com/${META_API_VERSION}/${PIXEL_ID}/events`;
     try {
         const res = await axios.post(url, { data: events }, {
             params: { access_token: ACCESS_TOKEN }
