@@ -69,6 +69,6 @@ Estas librerias están especificadas en el archivo `package.json`.
 
 - npm install
 
-### 3. Ejecución Asmurai-CAPI
+### 3. Ejecución Adsmurai-CAPI
 
 - node index.js
