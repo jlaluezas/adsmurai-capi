@@ -41,7 +41,11 @@ Si enviamos "Checkout" tal cual, Meta lo interpreta como un "Custom Event", perd
 
 ** Decisión tomada, es totalmente reversible. Únicamente he pensado que sería mejor. **
 
----
+### 6. Estrategia de Deduplicación (Event ID Determinista)
+Ante la ausencia de un `Transaction ID`  en el CSV, el programa genera un `event_id` determinista basado en la concatenación de variables clave (Email Principal + Timestamp + Valor) y lo procesa mediante SHA-256.
+Si el mismo archivo se envia dos veces, el script generará idénticos `event_id`. La API de Meta reconocerá esta clave idéntica y descartará los eventos duplicados garantizando datos reales.
+
+--------
 
 ### Comentarios / Conclusiones ###
 - El evento indicado en Google Drive era Checkout, pero al ser conversiones offline de una tienda he decidido enviarlo como Purchase (evento standard de Meta).

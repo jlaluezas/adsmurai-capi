@@ -123,10 +123,16 @@ function formatAndAudit(row, index) {
         const hashedCountry = hashData(cleanCountry);
         const hashedGender = hashData(cleanGender);
 
+        // --- 3.5 GENERACIÓN DE EVENT ID (Deduplicación) ---
+
+        const baseStringForId = `${rawEmails[0] || 'no-email'}-${eventTime}-${cleanValue}`;
+        const generatedEventId = hashData(baseStringForId); 
+
         // --- 4. CONSTRUCCIÓN DEL EVENTO ---
         const event = {
             event_name: 'Purchase',
             event_time: eventTime,
+            event_id: generatedEventId,
             action_source: 'physical_store',
             user_data: {
                 em: hashedEmailArray,
@@ -169,7 +175,8 @@ function formatAndAudit(row, index) {
                 genero: cleanGender,
                 valor: cleanValue,
                 moneda: cleanCurrency,
-                timestamp: eventTime
+                timestamp: eventTime,
+                event_id_generado: generatedEventId
             },
         };
         return { audit, event };
