@@ -19,21 +19,35 @@ async function run() {
         const response = await axios.get(CSV_URL);
         const csvContent = response.data;
 
-        if (csvContent.includes('<html')) throw new Error('URL inválida');
+        if (csvContent.includes('<html')) throw new Error('URL inválida. El enlace no devuelve un CSV puro.');
 
         console.log('2. Procesando con estrategia Multi-Key...');
         const { eventsToSend, auditTrail } = await processData(csvContent, headers);
 
-        fs.writeFileSync('audit_log.json', JSON.stringify(auditTrail, null, 2));
-        console.log(`Audit Log generado (${auditTrail.length} eventos).`);
+        // --- CONSTRUCCIÓN DEL AUDIT LOG ESTRUCTURADO ---
+        const finalAuditLog = {
+            resumen: {
+                total_eventos: eventsToSend.length,
+                fecha_ejecucion: new Date().toISOString()
+            },
+            detalle_fila_por_fila: auditTrail,
+            payload_final_meta: {
+                data: eventsToSend
+            }
+        };
+
+        fs.writeFileSync('audit_log.json', JSON.stringify(finalAuditLog, null, 2));
+        console.log(`Audit Log generado con bloque final (${eventsToSend.length} eventos registrados).`);
 
         if (eventsToSend.length > 0) {
             console.log(`3. Enviando ${eventsToSend.length} eventos a Meta...`);
             await uploadToMeta(eventsToSend);
+        } else {
+            console.log('No se encontraron eventos válidos para enviar.');
         }
 
     } catch (error) {
-        console.error('Error:', error.message);
+        console.error('Error en el proceso principal:', error.message);
     }
 }
 
@@ -49,6 +63,7 @@ function processData(content, headers) {
         bufferStream
             .pipe(csv({ headers, skipLines: 1 }))
             .on('data', (row) => {
+                // Filtramos que al menos exista un email válido en alguna de las 3 columnas
                 if ((row.em0 && row.em0.includes('@')) || (row.em1 && row.em1.includes('@')) || (row.em2 && row.em2.includes('@'))) {
                     const result = formatAndAudit(row, counter);
                     if (result) {
@@ -87,7 +102,7 @@ function formatAndAudit(row, index) {
         const cleanCountry = (row.country || '').trim().toLowerCase(); 
         const cleanGender = (row.gender || '').toLowerCase().startsWith('f') ? 'f' : 'm';
 
-        //Identificador anunciantes
+        // Identificador anunciantes
         const rawMadid = (row.madid || '').trim();
 
         // Datos Económicos
@@ -156,16 +171,15 @@ function formatAndAudit(row, index) {
                 moneda: cleanCurrency,
                 timestamp: eventTime
             },
-            peticion_meta: event
+            // Se elimina la propiedad 'peticion_meta' de aquí porque el payload final ahora va agrupado al final del JSON
         };
         return { audit, event };
 
-  } catch (e) {
-        console.error('ERROR DETECTADO:', e.message);
+    } catch (e) {
+        console.error(`ERROR DETECTADO en la fila ${index}:`, e.message);
         return null;
     }
 }
-
 
 async function uploadToMeta(events) {
     const url = `https://graph.facebook.com/v19.0/${PIXEL_ID}/events`;
