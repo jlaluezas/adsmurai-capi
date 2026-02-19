@@ -3,7 +3,7 @@
 Esta herramienta la he diseñado para automatizar la inserción, normalización y envío de eventos de conversión offline. Su función principal es conectar fuentes de datos estáticas (en este caso CSV Vía Google Drive) con la **API de Conversiones de Meta**, asegurando que cada venta física se atribuya correctamente a las campañas digitales.
 En este caso únicamente esta centrado para procesar el csv facilitado.
 
-## 🚀 Funcionalidades Principales
+## Funcionalidades Principales
 
 * **Inserción Dinámica:** Lectura de archivos CSV directamente desde una URL remota (Google Drive), procesando los datos en *stream* para optimizar memoria.
 * **Normalización de Datos:** Limpieza estricta de emails, nombres y teléfonos siguiendo los estándares de calidad de Meta (EMQ).
@@ -14,7 +14,7 @@ En este caso únicamente esta centrado para procesar el csv facilitado.
 
 ---
 
-## 🛠️ Decisiones y Justificación
+## Decisiones y Justificación
 
 ### 1. Estrategia Multi-Key Matching (Maximización del EMQ)
 El archivo de origen contiene múltiples columnas de correo electrónico (`email`) dispersas. En lugar de seleccionar arbitrariamente una sola, el algoritmo captura y procesa todas las variantes disponibles para un mismo usuario.
@@ -52,7 +52,7 @@ Si enviamos "Checkout" tal cual, Meta lo interpreta como un "Custom Event", perd
 Normalmente también incluíria el `.env` ya que las credenciales no debieran subirse, pero al tratarse de una prueba asi no tenéis que generarlo.
 
 
-## ⚙️ Configuración y Montaje
+## Configuración y Montaje
 
 Pasos necesarios en local:
 
