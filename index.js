@@ -11,7 +11,7 @@ const CSV_URL = process.env.CSV_URL;
 const META_API_VERSION = process.env.META_API_VERSION;
 
 async function run() {
-    console.log('--- Iniciando Proceso CAPI: Multi-Email Matching ---');
+    console.log('--- Iniciando Proceso CAPI: ---');
     
     const headers = ['em0', 'em1', 'em2', 'phone', 'madid', 'name', 'zip', 'country', 'gender', 'action', 'time', 'price'];
 
